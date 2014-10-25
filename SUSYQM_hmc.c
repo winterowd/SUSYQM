@@ -21,7 +21,7 @@ v1.1: we compute, ``on the fly'', the 2--point function, <F[l]F[l+n]>
 
 double scale, m2latt, lambdaR; // scale factor,  squared lattice mass, ren.coup.
 
-double *Phi, *Phi_old, *F, *H;
+double *Phi, *Phi_old, *F, *H, *Wpp;
 
 int N; // lattice size
 int warms;
@@ -40,6 +40,14 @@ double Wprime(double phi){// dW/dPhi_n
   dWdPhin = phi*(1.0L + (sqr(phi)/6.0L));
 
   return(dWdPhin);
+}
+
+double Wprimeprime(double phi) {// dW/dPhi_n
+  double d2Wd2Phin;
+
+  dWdPhin = (1.0L + 0.5*sqr(phi));
+
+  return(d2Wd2Phin);
 }
 
 double DeltaS(double *Phi, double deltaPhi, int n){
@@ -227,18 +235,22 @@ int main(int argc, char *argv[]){
  
 
   FILE *vevf1, *vevf2, *vevphi, *vevphi2, *vevf4, *vevphi4;
+  FILE *vevWpp1, *vevWpp2, *vevWpp4;
   vevf1   = fopen("vevf1.out", "w");
   vevf2   = fopen("vevf2.out", "w");
   vevphi = fopen("vevphi.out", "w");
   vevphi2 = fopen("vevphi2.out", "w");
   vevf4 = fopen("vevf4.out", "w");
   vevphi4  = fopen("vevphi4.out", "w");
-
+  vevWpp1 = fopen("vevWpp1.out", "w");
+  vevWpp2 = fopen("vevWpp2.out", "w");
+  vevWpp4 = fopen("vevWpp4.out", "w");
 
   Phi = malloc((N+1)*sizeof(double));
   Phi_old = malloc((N+1)*sizeof(double));
   F = malloc((N+1)*sizeof(double));
   H = malloc((N+1)*sizeof(double));
+  Wpp = malloc((N+1)*sizeof(double));
   
   double bicF, bicPhi, vbicF, vbicPhi;
   int samples;
@@ -269,10 +281,11 @@ int main(int argc, char *argv[]){
     // record the MC time series 
     if(m%meas==0){
       
-      //compute the auxiliary field
+      //compute the auxiliary field and Wprimeprime
       for(n=0;n<N;n++){
 	np1 = (n+1)%N; nm1 = (N+n-1)%N;
 	F[n] = 0.5*(Phi[np1]-Phi[nm1])+ m2latt*Wprime(Phi[n]);
+	Wpp[n] = exp(log(Wprimeprime(Phi[n])));
       }
       
       
@@ -280,10 +293,13 @@ int main(int argc, char *argv[]){
       for(n=0; n<N/2; n++) {
 	fprintf(vevf2,"%d\t%d\t%g\n",m,n,new_vevF2(F,n));
 	fprintf(vevphi2,"%d\t%d\t%g\n",m,n,new_vevF2(Phi,n));
+	fprintf(vevWpp2,"%d\t%d\t%g\n",m,n,new_vevF2(Wpp,n));
       }
       fprintf(vevf4, "%d\t%g\n", m, vevF4(F));
       fprintf(vevphi4, "%d\t%g\n", m, vevF4(Phi));
       fprintf(vevphi, "%d\t%g\n", m, vevF1(Phi));
+      fprintf(vevWpp1, "%d\t%g\n", m, vevF1(Wpp));
+      fprintf(vevWpp4, "%d\t%g\n", m, vevF4(Wpp));
     } 
     
   } 
@@ -296,10 +312,15 @@ int main(int argc, char *argv[]){
   fclose(vevphi4);
   fclose(vevphi);
   fclose(vevphi2);
-  
+  fclose(vevWpp1);
+  fclose(vevWpp2);
+  fclose(vevWpp4);
+
   free(Phi);
   free(Phi_old);
   free(F);
+  free(H);
+  free(Wpp);
   gsl_rng_free(r);
   // printf("%g\t%g\n", bicF, vbicF-sqr(bicF));
   //printf("%g\t%g\n", bicPhi, vbicPhi-sqr(bicPhi));
