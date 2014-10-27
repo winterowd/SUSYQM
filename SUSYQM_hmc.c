@@ -45,7 +45,7 @@ double Wprime(double phi){// dW/dPhi_n
 double Wprimeprime(double phi) {// dW/dPhi_n
   double d2Wd2Phin;
 
-  dWdPhin = (1.0L + 0.5*sqr(phi));
+  d2Wd2Phin = (1.0L + 0.5*sqr(phi));
 
   return(d2Wd2Phin);
 }
@@ -285,7 +285,7 @@ int main(int argc, char *argv[]){
       for(n=0;n<N;n++){
 	np1 = (n+1)%N; nm1 = (N+n-1)%N;
 	F[n] = 0.5*(Phi[np1]-Phi[nm1])+ m2latt*Wprime(Phi[n]);
-	Wpp[n] = exp(log(Wprimeprime(Phi[n])));
+	Wpp[n] = exp(-log(Wprimeprime(Phi[n])));
       }
       
       
