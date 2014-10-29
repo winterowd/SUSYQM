@@ -281,7 +281,7 @@ int main(int argc, char *argv[]){
     // record the MC time series 
     if(m%meas==0){
       
-      //compute the auxiliary field and Wprimeprime
+      //compute the auxiliary field and exp(-log(Wprimeprime))
       for(n=0;n<N;n++){
 	np1 = (n+1)%N; nm1 = (N+n-1)%N;
 	F[n] = 0.5*(Phi[np1]-Phi[nm1])+ m2latt*Wprime(Phi[n]);
