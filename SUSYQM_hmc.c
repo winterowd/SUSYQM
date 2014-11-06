@@ -79,7 +79,8 @@ double action(double *Phi) {
     np1 = (n+1)%N;
     Snonloc += (1.0/(m2latt*lambdaR))*(Phi[n]*Phi[n] - Phi[n]*Phi[np1]); 
     Sloc += 0.5*(m2latt/lambdaR)*( Wprime(Phi[n])*Wprime(Phi[n]) );
-    Spoly += -scale*lambdaR*m2latt*log((1.0/(scale*lambdaR))*(1.0 + 0.5*Phi[n]*Phi[n]));
+    //Spoly += -scale*lambdaR*m2latt*log((1.0/(scale*lambdaR))*(1.0 + 0.5*Phi[n]*Phi[n]));
+    Spoly += -log(m2latt*Wprimeprime(Phi[n]));
     Smom += 0.5*H[n]*H[n];
   }
   return(Smom + Snonloc + Sloc + Spoly);
@@ -105,7 +106,8 @@ double force(int n) {
   force_nonloc = force_loc = force_poly = 0.0;
   force_nonloc = (1.0/(m2latt*lambdaR))*(Phi[np1] + Phi[nm1] - 2.0*Phi[n]);
   force_loc = -(m2latt/lambdaR)*Wprime(Phi[n])*(1.0 + 0.5*Phi[n]*Phi[n]);
-  force_poly = scale*lambdaR*m2latt*Phi[n]/(1.0 + 0.5*Phi[n]*Phi[n]);
+  //force_poly = scale*lambdaR*m2latt*Phi[n]/(1.0 + 0.5*Phi[n]*Phi[n]);
+  force_poly = Phi[n]/(Wprimeprime(Phi[n]));
   return(force_nonloc + force_loc + force_poly);
 }//force
 
@@ -158,6 +160,49 @@ double vevF4(double *F){// smeared estimator for << F[n]^4>>
   return(vf4/(double)N);
 }
 
+
+double vevF6(double *F){// smeared estimator for << F[n]^6>>
+  int n;
+  double vf6 = 0.0;
+  for(n=0;n<N;n++){
+    vf6 = vf6 + sqr(sqr(sqr(F[n])));
+  }
+  return(vf6/(double)N);
+}
+
+
+double vevF8(double *F){// smeared estimator for << F[n]^8>>
+  int n;
+  double vf8 = 0.0;
+  for(n=0;n<N;n++){
+    vf8 = vf8 + sqr(sqr(sqr(sqr(F[n]))));
+  }
+  return(vf8/(double)N);
+}
+
+
+double SD3a(double *F) { //estimator for <<\Phi[n]^3\Phi[n+1]>>
+
+  int l; double sd3 = 0.0;
+  for(l=0;l<N;l++){
+    sd3 = sd3 + sqr(F[l])*F[l]*F[(l+1)%N];
+  }
+  sd3 = sd3/(double)N;
+  return(sd3);
+}
+
+
+double SD3b(double *F) { //estimator for <<\Phi[n]^3\Phi[n-1]>>
+
+  int l; double sd3 = 0.0;
+  for(l=0;l<N;l++){
+    sd3 = sd3 + sqr(F[l])*F[l]*F[(l-1)%N];
+  }
+  sd3 = sd3/(double)N;
+  return(sd3);
+}
+
+
 /* double BiC(double *X){// Binder cumulant: <F^4>-3<F^2>^2
   int n; double vevf2=0.0, vevf4=0.0;
 
@@ -190,7 +235,7 @@ void update() {
 
   ranmom();
   double action_old = action(Phi);
-  //printf("initial action = %e\n", action_old);
+  printf("initial action = %e\n", action_old);
   
   for(i=0; i<num_steps; i++) {
 
@@ -200,7 +245,7 @@ void update() {
 
   }
   //metropolis step
-  //printf("final action = %e\n", action(Phi));
+  printf("final action = %e\n", action(Phi));
   double deltaS = action(Phi) - action_old;
   double rand = gsl_rng_uniform(r);
   if( exp((double)-deltaS) > rand) {
@@ -233,15 +278,19 @@ int main(int argc, char *argv[]){
   sign = 1;
 
  
-
-  FILE *vevf1, *vevf2, *vevphi, *vevphi2, *vevf4, *vevphi4;
-  FILE *vevWpp1, *vevWpp2, *vevWpp4;
+  
+  FILE *vevf1, *vevf2, *vevphi, *vevphi2, *vevf4, *vevphi4, *vevphi6, *vevphi8;
+  FILE *vevWpp1, *vevWpp2, *vevWpp4, *phiSD3a, *phiSD3b;
   vevf1   = fopen("vevf1.out", "w");
   vevf2   = fopen("vevf2.out", "w");
   vevphi = fopen("vevphi.out", "w");
   vevphi2 = fopen("vevphi2.out", "w");
   vevf4 = fopen("vevf4.out", "w");
   vevphi4  = fopen("vevphi4.out", "w");
+  vevphi6  = fopen("vevphi6.out", "w");
+  vevphi8  = fopen("vevphi8.out", "w");
+  phiSD3a = fopen("phiSD3a.out", "w");
+  phiSD3b = fopen("phiSD3b.out", "w");
   vevWpp1 = fopen("vevWpp1.out", "w");
   vevWpp2 = fopen("vevWpp2.out", "w");
   vevWpp4 = fopen("vevWpp4.out", "w");
@@ -298,6 +347,10 @@ int main(int argc, char *argv[]){
       fprintf(vevf4, "%d\t%g\n", m, vevF4(F));
       fprintf(vevphi4, "%d\t%g\n", m, vevF4(Phi));
       fprintf(vevphi, "%d\t%g\n", m, vevF1(Phi));
+      fprintf(vevphi6, "%d\t%g\n", m, vevF6(Phi));
+      fprintf(vevphi8, "%d\t%g\n", m, vevF8(Phi));
+      fprintf(phiSD3a, "%d\t%g\n", m, SD3a(Phi));
+      fprintf(phiSD3b, "%d\t%g\n", m, SD3b(Phi));
       fprintf(vevWpp1, "%d\t%g\n", m, vevF1(Wpp));
       fprintf(vevWpp4, "%d\t%g\n", m, vevF4(Wpp));
     } 
@@ -312,6 +365,10 @@ int main(int argc, char *argv[]){
   fclose(vevphi4);
   fclose(vevphi);
   fclose(vevphi2);
+  fclose(vevphi6);
+  fclose(vevphi8);
+  fclose(phiSD3a);
+  fclose(phiSD3b);
   fclose(vevWpp1);
   fclose(vevWpp2);
   fclose(vevWpp4);
