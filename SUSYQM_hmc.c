@@ -291,8 +291,8 @@ int main(int argc, char *argv[]){
   sign = 1;
 
 #ifdef FACTOR
-  prinf("FACTOR defined!");
-  FILE *vevDetWpp, *vevphiDetWpp, vevphi2DetWpp;
+  printf("FACTOR defined!");
+  FILE *vevDetWpp, *vevphiDetWpp, *vevphi2DetWpp;
   vevDetWpp = fopen("vevDetWpp.out", "w");
   vevphiDetWpp = fopen("vevphiDetWpp.out", "w");
   vevphi2DetWpp = fopen("vevphi2DetWpp.out", "w");
