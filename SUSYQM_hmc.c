@@ -17,7 +17,7 @@ v1.1: we compute, ``on the fly'', the 2--point function, <F[l]F[l+n]>
 
 #define sqr(x) ((x)*(x))
 #define sign(x) ((x)>=0.0 ? 1 : -1)
-
+#define abs(x) (sqrt(x*x))
 
 double scale, m2latt, lambdaR; // scale factor,  squared lattice mass, ren.coup.
 
@@ -50,6 +50,15 @@ double Wprimeprime(double phi) {// dW/dPhi_n
   return(d2Wd2Phin);
 }
 
+double detWprimeprime(double *Phi) { // |detW''|
+  int n;
+  double det=1.;
+  for(n=0; n<N; n++) 
+    det = det*Wprimeprime(Phi[n]);
+  return(abs(det));
+}
+
+
 double DeltaS(double *Phi, double deltaPhi, int n){
 // computes the change in the action, when we propose Phi[n]->Phi[n] + deltaPhi
   double deltaS, deltaSnonloc, deltaSloc, deltaSpoly, Phinew=Phi[n]+deltaPhi;
@@ -80,7 +89,9 @@ double action(double *Phi) {
     Snonloc += (1.0/(m2latt*lambdaR))*(Phi[n]*Phi[n] - Phi[n]*Phi[np1]); 
     Sloc += 0.5*(m2latt/lambdaR)*( Wprime(Phi[n])*Wprime(Phi[n]) );
     //Spoly += -scale*lambdaR*m2latt*log((1.0/(scale*lambdaR))*(1.0 + 0.5*Phi[n]*Phi[n]));
+#ifndef FACTOR
     Spoly += -log(m2latt*Wprimeprime(Phi[n]));
+#endif
     Smom += 0.5*H[n]*H[n];
   }
   return(Smom + Snonloc + Sloc + Spoly);
@@ -107,7 +118,9 @@ double force(int n) {
   force_nonloc = (1.0/(m2latt*lambdaR))*(Phi[np1] + Phi[nm1] - 2.0*Phi[n]);
   force_loc = -(m2latt/lambdaR)*Wprime(Phi[n])*(1.0 + 0.5*Phi[n]*Phi[n]);
   //force_poly = scale*lambdaR*m2latt*Phi[n]/(1.0 + 0.5*Phi[n]*Phi[n]);
+#ifndef FACTOR
   force_poly = Phi[n]/(Wprimeprime(Phi[n]));
+#endif
   return(force_nonloc + force_loc + force_poly);
 }//force
 
@@ -277,7 +290,13 @@ int main(int argc, char *argv[]){
   scale = 1.0;
   sign = 1;
 
- 
+#ifdef FACTOR
+  prinf("FACTOR defined!");
+  FILE *vevDetWpp, *vevphiDetWpp, vevphi2DetWpp;
+  vevDetWpp = fopen("vevDetWpp.out", "w");
+  vevphiDetWpp = fopen("vevphiDetWpp.out", "w");
+  vevphi2DetWpp = fopen("vevphi2DetWpp.out", "w");
+#endif
   
   FILE *vevf1, *vevf2, *vevphi, *vevphi2, *vevf4, *vevphi4, *vevphi6, *vevphi8;
   FILE *vevWpp1, *vevWpp2, *vevWpp4, *phiSD3a, *phiSD3b;
@@ -343,6 +362,9 @@ int main(int argc, char *argv[]){
 	fprintf(vevf2,"%d\t%d\t%g\n",m,n,new_vevF2(F,n));
 	fprintf(vevphi2,"%d\t%d\t%g\n",m,n,new_vevF2(Phi,n));
 	fprintf(vevWpp2,"%d\t%d\t%g\n",m,n,new_vevF2(Wpp,n));
+#ifdef FACTOR
+	fprintf(vevphi2DetWpp,"%d\t%d\t%g\n",m,n,detWprimeprime(Phi)*new_vevF2(Phi,n));
+#endif
       }
       fprintf(vevf4, "%d\t%g\n", m, vevF4(F));
       fprintf(vevphi4, "%d\t%g\n", m, vevF4(Phi));
@@ -353,6 +375,10 @@ int main(int argc, char *argv[]){
       fprintf(phiSD3b, "%d\t%g\n", m, SD3b(Phi));
       fprintf(vevWpp1, "%d\t%g\n", m, vevF1(Wpp));
       fprintf(vevWpp4, "%d\t%g\n", m, vevF4(Wpp));
+#ifdef FACTOR
+      fprintf(vevDetWpp, "%d\t%g\n", m, detWprimeprime(Phi));
+      fprintf(vevphiDetWpp, "%d\t%g\n", m, detWprimeprime(Phi)*vevF1(Phi));
+#endif
     } 
     
   } 
@@ -372,6 +398,11 @@ int main(int argc, char *argv[]){
   fclose(vevWpp1);
   fclose(vevWpp2);
   fclose(vevWpp4);
+#ifdef FACTOR
+  fclose(vevDetWpp);
+  fclose(vevphiDetWpp);
+  fclose(vevphi2DetWpp);
+#endif
 
   free(Phi);
   free(Phi_old);
