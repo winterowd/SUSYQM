@@ -356,7 +356,7 @@ int main(int argc, char *argv[]){
       for(n=0;n<N;n++){
 	np1 = (n+1)%N; nm1 = (N+n-1)%N;
 	F[n] = 0.5*(Phi[np1]-Phi[nm1])+ m2latt*Wprime(Phi[n]);
-	Wpp[n] = exp(-log(Wprimeprime(Phi[n])));
+	Wpp[n] = exp(-log(m2latt*Wprimeprime(Phi[n])));
       }
       
       
