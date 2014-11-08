@@ -53,9 +53,12 @@ double Wprimeprime(double phi) {// dW/dPhi_n
 double detWprimeprime(double *Phi) { // |detW''|
   int n;
   double det=1.;
-  for(n=0; n<N; n++) 
-    det = det*Wprimeprime(Phi[n]);
-  return(abs(det));
+  for(n=0; n<N; n++) { 
+    printf("%d %e %e\n", n, Phi[n], Wprimeprime(Phi[n]));
+    det = det*m2latt*Wprimeprime(Phi[n]);
+  }
+  printf("det: %e\n", det);
+  return(det);
 }
 
 
@@ -363,7 +366,7 @@ int main(int argc, char *argv[]){
 	fprintf(vevphi2,"%d\t%d\t%g\n",m,n,new_vevF2(Phi,n));
 	fprintf(vevWpp2,"%d\t%d\t%g\n",m,n,new_vevF2(Wpp,n));
 #ifdef FACTOR
-	fprintf(vevphi2DetWpp,"%d\t%d\t%g\n",m,n,detWprimeprime(Phi)*new_vevF2(Phi,n));
+	//fprintf(vevphi2DetWpp,"%d\t%d\t%g\n",m,n,detWprimeprime(Phi)*new_vevF2(Phi,n));
 #endif
       }
       fprintf(vevf4, "%d\t%g\n", m, vevF4(F));
@@ -377,7 +380,7 @@ int main(int argc, char *argv[]){
       fprintf(vevWpp4, "%d\t%g\n", m, vevF4(Wpp));
 #ifdef FACTOR
       fprintf(vevDetWpp, "%d\t%g\n", m, detWprimeprime(Phi));
-      fprintf(vevphiDetWpp, "%d\t%g\n", m, detWprimeprime(Phi)*vevF1(Phi));
+      //fprintf(vevphiDetWpp, "%d\t%g\n", m, detWprimeprime(Phi)*vevF1(Phi));
 #endif
     } 
     
