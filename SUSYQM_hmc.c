@@ -54,10 +54,10 @@ double detWprimeprime(double *Phi) { // |detW''|
   int n;
   double det=1.;
   for(n=0; n<N; n++) { 
-    printf("%d %e %e\n", n, Phi[n], Wprimeprime(Phi[n]));
+    //printf("%d %e %e\n", n, Phi[n], Wprimeprime(Phi[n]));
     det = det*Wprimeprime(Phi[n]);
   }
-  printf("det: %e\n", det);
+  //printf("det: %e\n", det);
   return(det);
 }
 
