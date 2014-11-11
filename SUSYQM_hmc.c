@@ -55,7 +55,7 @@ double detWprimeprime(double *Phi) { // |detW''|
   double det=1.;
   for(n=0; n<N; n++) { 
     printf("%d %e %e\n", n, Phi[n], Wprimeprime(Phi[n]));
-    det = det*m2latt*Wprimeprime(Phi[n]);
+    det = det*Wprimeprime(Phi[n]);
   }
   printf("det: %e\n", det);
   return(det);
@@ -93,7 +93,7 @@ double action(double *Phi) {
     Sloc += 0.5*(m2latt/lambdaR)*( Wprime(Phi[n])*Wprime(Phi[n]) );
     //Spoly += -scale*lambdaR*m2latt*log((1.0/(scale*lambdaR))*(1.0 + 0.5*Phi[n]*Phi[n]));
 #ifndef FACTOR
-    Spoly += -log(m2latt*Wprimeprime(Phi[n]));
+    Spoly += -log(Wprimeprime(Phi[n]));
 #endif
     Smom += 0.5*H[n]*H[n];
   }
@@ -356,7 +356,7 @@ int main(int argc, char *argv[]){
       for(n=0;n<N;n++){
 	np1 = (n+1)%N; nm1 = (N+n-1)%N;
 	F[n] = 0.5*(Phi[np1]-Phi[nm1])+ m2latt*Wprime(Phi[n]);
-	Wpp[n] = exp(-log(m2latt*Wprimeprime(Phi[n])));
+	Wpp[n] = exp(-log(Wprimeprime(Phi[n])));
       }
       
       
