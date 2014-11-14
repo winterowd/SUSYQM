@@ -10,6 +10,7 @@ v1.1: we compute, ``on the fly'', the 2--point function, <F[l]F[l+n]>
 */
 
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <math.h>
 #include <gsl/gsl_randist.h>
@@ -32,7 +33,7 @@ int num_steps; //number of steps in a trajectory
 int sign; // sign of the mass term: +1 or -1
 int accepts=0; //number of accepts
 gsl_rng *r; //random number generator
-
+char start[4];
 
 double Wprime(double phi){// dW/dPhi_n
   double dWdPhin;
@@ -139,11 +140,19 @@ void update_momenta(double eps) {
 
 void input(double *Phi){// initializes the configuration at random in the interval [-1,1]
   int n;
-  for(n=0;n<N;n++){
-    Phi[n] = .5*(1.0-2.0*gsl_rng_uniform(r)); /* hot start */
-    //Phi[n]=0.0; // cold start
+  if( strncmp("COLD", start, 4) == 0 ) { //cold start
+    printf("COLD START!\n");
+    for(n=0;n<N;n++){
+      Phi[n]=0.0; // cold start
+    }
   }
-
+  else { //hot start
+    printf("HOT START!\n");
+    for(n=0;n<N;n++){
+      Phi[n] = .5*(1.0-2.0*gsl_rng_uniform(r)); /* hot start */
+    }
+  }
+  
 }
 
 double vevF1(double *F){//compute <<F[n]>> over the lattice thus obtaining a less noisy estimator for <F>
@@ -290,6 +299,9 @@ int main(int argc, char *argv[]){
   step_size = atof(argv[7]);
   num_steps = atoi(argv[8]);
   int seed = atoi(argv[9]);
+  strcpy(start, argv[10]);
+  printf("N: %d lambdaR: %e m2latt: %e warms: %d trajecs: %d meas: %d step_size: %e
+num_steps %d seed: %d\n", N, lambdaR, m2latt, warms, trajecs, meas, step_size, num_steps, seed);
   scale = 1.0;
   sign = 1;
 
