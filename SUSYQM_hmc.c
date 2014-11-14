@@ -300,8 +300,7 @@ int main(int argc, char *argv[]){
   num_steps = atoi(argv[8]);
   int seed = atoi(argv[9]);
   strcpy(start, argv[10]);
-  printf("N: %d lambdaR: %e m2latt: %e warms: %d trajecs: %d meas: %d step_size: %e
-num_steps %d seed: %d\n", N, lambdaR, m2latt, warms, trajecs, meas, step_size, num_steps, seed);
+  printf("N: %d lambdaR: %e m2latt: %e warms: %d trajecs: %d meas: %d step_size: %e num_steps %d seed: %d\n ", N, lambdaR, m2latt, warms, trajecs, meas, step_size, num_steps, seed);
   scale = 1.0;
   sign = 1;
 
