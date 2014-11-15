@@ -35,6 +35,10 @@ int accepts=0; //number of accepts
 gsl_rng *r; //random number generator
 char start[4];
 
+//debugging variables
+double S1, S2, S3, S_mom;
+double S1_old, S2_old, S3_old, S_mom_old;
+
 double Wprime(double phi){// dW/dPhi_n
   double dWdPhin;
 
@@ -94,10 +98,11 @@ double action(double *Phi) {
     Sloc += 0.5*(m2latt/lambdaR)*( Wprime(Phi[n])*Wprime(Phi[n]) );
     //Spoly += -scale*lambdaR*m2latt*log((1.0/(scale*lambdaR))*(1.0 + 0.5*Phi[n]*Phi[n]));
 #ifndef FACTOR
-    Spoly += -log(Wprimeprime(Phi[n]));
+    Spoly += -log(m2latt*Wprimeprime(Phi[n]));
 #endif
     Smom += 0.5*H[n]*H[n];
   }
+  S1 = Snonloc; S2 = Sloc; S3 = Spoly; S_mom = Smom;
   return(Smom + Snonloc + Sloc + Spoly);
 }//action()
 
@@ -149,7 +154,7 @@ void input(double *Phi){// initializes the configuration at random in the interv
   else { //hot start
     printf("HOT START!\n");
     for(n=0;n<N;n++){
-      Phi_old[n] = Phi[n] = .5*(1.0-2.0*gsl_rng_uniform(r)); /* hot start */
+      Phi_old[n] = Phi[n] = 10.*(1.0-2.0*gsl_rng_uniform(r)); /* hot start */
     }
   }
   
@@ -249,7 +254,7 @@ void ranmom() {
   int n;
   for(n=0;n<N; n++) {
     H[n] = gsl_ran_gaussian(r, 1.);
-    //printf("H[%d] = %e\n", n, H[n]);
+    printf("HMOM[%d] = %e\n", n, H[n]);
   }
 
 }//init_mom()
@@ -260,6 +265,7 @@ void update() {
 
   ranmom();
   double action_old = action(Phi);
+  S1_old = S1; S2_old = S2; S3_old = S3; S_mom_old = S_mom;
   printf("initial action = %e\n", action_old);
   
   for(i=0; i<num_steps; i++) {
@@ -275,12 +281,14 @@ void update() {
   double rand = gsl_rng_uniform(r);
   if( exp((double)-deltaS) > rand) {
     accepts++;
-    printf("ACCEPT: deltaS = %e\n", deltaS);
+    printf("ACCEPT: deltaS: %e DS1: %e DS2: %e DS3: %e DSMOM: %e\n", deltaS, (S1-S1_old), 
+	   (S2-S2_old), (S3-S3_old), (S_mom-S_mom_old));
     for(n=0; n<N; n++)
       Phi_old[n] = Phi[n];
   }
   else {
-    printf("REJECT: deltaS = %e\n", deltaS);
+    printf("REJECT: deltaS: %e DS1: %e DS2: %e DS3: %e DSMOM: %e\n", deltaS, (S1-S1_old), 
+	   (S2-S2_old), (S3-S3_old), (S_mom-S_mom_old));
     for(n=0; n<N; n++)
       Phi[n] = Phi_old[n];
   }
