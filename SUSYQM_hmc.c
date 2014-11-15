@@ -143,13 +143,13 @@ void input(double *Phi){// initializes the configuration at random in the interv
   if( strncmp("COLD", start, 4) == 0 ) { //cold start
     printf("COLD START!\n");
     for(n=0;n<N;n++){
-      Phi[n]=0.0; // cold start
+      Phi_old[n] = Phi[n]=0.0; // cold start
     }
   }
   else { //hot start
     printf("HOT START!\n");
     for(n=0;n<N;n++){
-      Phi[n] = .5*(1.0-2.0*gsl_rng_uniform(r)); /* hot start */
+      Phi_old[n] = Phi[n] = .5*(1.0-2.0*gsl_rng_uniform(r)); /* hot start */
     }
   }
   
