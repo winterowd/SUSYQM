@@ -34,10 +34,13 @@ int sign; // sign of the mass term: +1 or -1
 int accepts=0; //number of accepts
 gsl_rng *r; //random number generator
 char start[4];
+double sigma_p;
+double lambda;
 
 //debugging variables
 double S1, S2, S3, S_mom;
 double S1_old, S2_old, S3_old, S_mom_old;
+double dPhi;
 
 double Wprime(double phi){// dW/dPhi_n
   double dWdPhin;
@@ -98,11 +101,12 @@ double action(double *Phi) {
     Sloc += 0.5*(m2latt/lambdaR)*( Wprime(Phi[n])*Wprime(Phi[n]) );
     //Spoly += -scale*lambdaR*m2latt*log((1.0/(scale*lambdaR))*(1.0 + 0.5*Phi[n]*Phi[n]));
 #ifndef FACTOR
-    Spoly += -log(m2latt*Wprimeprime(Phi[n]));
+    Spoly += -log(Wprimeprime(Phi[n]));
 #endif
-    Smom += 0.5*H[n]*H[n];
+    Smom += 0.5*H[n]*H[n]/sigma_p;
   }
   S1 = Snonloc; S2 = Sloc; S3 = Spoly; S_mom = Smom;
+  printf("S1: %e S2: %e S3: %e Smom: %e\n", S1, S2, S3, S_mom);
   return(Smom + Snonloc + Sloc + Spoly);
 }//action()
 
@@ -110,7 +114,7 @@ void update_Phi(double eps) {
 
   int n;
   for(n=0; n<N; n++) {
-    Phi[n] += eps*H[n];
+    Phi[n] += eps*H[n]/sigma_p;
     //printf("update Phi[%d] = %e\n", n, Phi[n]);
   }
 
@@ -125,11 +129,12 @@ double force(int n) {
   nm1 = (n+N-1)%N;
   force_nonloc = force_loc = force_poly = 0.0;
   force_nonloc = (1.0/(m2latt*lambdaR))*(Phi[np1] + Phi[nm1] - 2.0*Phi[n]);
-  force_loc = -(m2latt/lambdaR)*Wprime(Phi[n])*(1.0 + 0.5*Phi[n]*Phi[n]);
+  force_loc = -(m2latt/lambdaR)*Wprime(Phi[n])*Wprimeprime(Phi[n]);
   //force_poly = scale*lambdaR*m2latt*Phi[n]/(1.0 + 0.5*Phi[n]*Phi[n]);
 #ifndef FACTOR
   force_poly = Phi[n]/(Wprimeprime(Phi[n]));
 #endif
+  //printf("F1: %e F2: %e F3: %e\n", c1*force_nonloc, c2*force_loc, c3*force_poly);
   return(force_nonloc + force_loc + force_poly);
 }//force
 
@@ -145,6 +150,7 @@ void update_momenta(double eps) {
 
 void input(double *Phi){// initializes the configuration at random in the interval [-1,1]
   int n;
+  double rand;
   if( strncmp("COLD", start, 4) == 0 ) { //cold start
     printf("COLD START!\n");
     for(n=0;n<N;n++){
@@ -154,7 +160,13 @@ void input(double *Phi){// initializes the configuration at random in the interv
   else { //hot start
     printf("HOT START!\n");
     for(n=0;n<N;n++){
-      Phi_old[n] = Phi[n] = 10.*(1.0-2.0*gsl_rng_uniform(r)); /* hot start */
+      Phi_old[n] = Phi[n] = 0.00001*(1.0-2.0*gsl_rng_uniform(r)); /* hot start */
+      /*rand =drand48();
+      printf("rand: %e\n", rand);
+      Phi[n] = dPhi*(1.0-2.0*rand);
+      printf("Phi[%d]: %e\n", n, Phi[n]);
+      Phi_old[n] = Phi[n]; */
+      //printf("Phi[%d]: %e\n", n, Phi[n]);
     }
   }
   
@@ -169,6 +181,9 @@ double vevF1(double *F){//compute <<F[n]>> over the lattice thus obtaining a les
   return(vevf1/(double)N);
 }
 
+double potential(double *Phi, int n) {
+  return(Wprime(Phi[n])*Wprime(Phi[n]));
+}
 
 double new_vevF2(double *F, int n){// smeared estimator for <<F[l]F[l+n]>>
   int l; double vf2 = 0.0;
@@ -253,8 +268,9 @@ void ranmom() {
 
   int n;
   for(n=0;n<N; n++) {
-    H[n] = gsl_ran_gaussian(r, 1.);
-    printf("HMOM[%d] = %e\n", n, H[n]);
+    H[n] = gsl_ran_gaussian(r, sigma_p);
+    //H[n] = -H[n]; //test reversibility of HMC
+    //printf("HMOM[%d]: %e\n", n, H[n]);
   }
 
 }//init_mom()
@@ -262,17 +278,51 @@ void ranmom() {
 void update() {
 
   int i, n;
+  //double S1, S2;
+  double deltaPhi;
+
+  /*for(i=0; i<N; i++)
+    H[n] = 0.;
+  
+  for(n=0; n<N; n++) {
+    S1 = action(Phi);
+    printf("S1: %e\n", S1);
+    deltaPhi = dPhi*(1.0L-2.0L*drand48());
+    printf("%d deltaPhi: %e\n", n, deltaPhi);
+    Phi[n] = Phi[n] + deltaPhi;
+    S2 = action(Phi);
+    printf("S2: %e\n", S2);
+    printf("deltaS: %e\n", S2-S1);
+    if(exp(-(S2-S1)) >drand48()) {
+      printf("ACCEPT!\n");
+    }
+    else {
+      printf("REJECT!");
+      Phi[n] = Phi_old[n];
+    }
+  }
+
+  return;*/
 
   ranmom();
   double action_old = action(Phi);
   S1_old = S1; S2_old = S2; S3_old = S3; S_mom_old = S_mom;
+  //printf("S1_old: %e S2_old: %e S3_old: %e S_mom_old: %e\n", S1_old, S2_old, S3_old, S_mom_old);
+  //printf("S1: %e S2: %e S3: %e S_mom: %e\n", S1, S2, S3, S_mom);
   printf("initial action = %e\n", action_old);
   
   for(i=0; i<num_steps; i++) {
 
+    /* replace 2nd order leap from with Omelyan
     update_Phi(step_size/2.);
     update_momenta(step_size);
-    update_Phi(step_size/2.);
+    update_Phi(step_size/2.);*/
+
+    update_Phi(lambda*step_size);
+    update_momenta(step_size/2.);
+    update_Phi((1.-2.*lambda)*step_size);
+    update_momenta(step_size/2.);
+    update_Phi(lambda*step_size);
 
   }
   //metropolis step
@@ -308,7 +358,9 @@ int main(int argc, char *argv[]){
   num_steps = atoi(argv[8]);
   int seed = atoi(argv[9]);
   strcpy(start, argv[10]);
-  printf("N: %d lambdaR: %e m2latt: %e warms: %d trajecs: %d meas: %d step_size: %e num_steps %d seed: %d\n ", N, lambdaR, m2latt, warms, trajecs, meas, step_size, num_steps, seed);
+  sigma_p = atof(argv[11]);
+  lambda = atof(argv[12]);
+  printf("N: %d lambdaR: %e m2latt: %e warms: %d trajecs: %d meas: %d step_size: %e num_steps %d seed: %d sigma_p: %e lambda: %e\n", N, lambdaR, m2latt, warms, trajecs, meas, step_size, num_steps, seed, sigma_p, lambda);
   scale = 1.0;
   sign = 1;
 
@@ -335,7 +387,7 @@ int main(int argc, char *argv[]){
   vevWpp1 = fopen("vevWpp1.out", "w");
   vevWpp2 = fopen("vevWpp2.out", "w");
   vevWpp4 = fopen("vevWpp4.out", "w");
-
+ 
   Phi = malloc((N+1)*sizeof(double));
   Phi_old = malloc((N+1)*sizeof(double));
   F = malloc((N+1)*sizeof(double));
@@ -349,7 +401,8 @@ int main(int argc, char *argv[]){
 
   r = gsl_rng_alloc(gsl_rng_ranlux);
   gsl_rng_set(r,seed);
-  
+  //(void)srand48(0);
+  //printf("first random %e\n", drand48());
   input(Phi); //initialize the scalar
 
 
@@ -358,9 +411,9 @@ int main(int argc, char *argv[]){
     update();
     
   }
+  //return;
   printf("WARMUPS FINISHED!\n");
   accepts=0;
-
   samples=0; bicF=0.0; bicPhi=0.0; vbicF=0.0; vbicPhi=0.0;
   
   for(m=1;m<=trajecs;m++){
@@ -387,6 +440,10 @@ int main(int argc, char *argv[]){
 #ifdef FACTOR
 	fprintf(vevphi2DetWpp,"%d\t%d\t%g\n",m,n,detWprimeprime(Phi)*new_vevF2(Phi,n));
 #endif
+      }
+      for(n=0; n<N; n++) {
+	//printf("DEBUG_potential: %d %d %e\n", m, n, potential(Phi,n));
+	//printf("DEBUG_phi: %d %d %e\n", m, n, Phi[n]);
       }
       fprintf(vevf4, "%d\t%g\n", m, vevF4(F));
       fprintf(vevphi4, "%d\t%g\n", m, vevF4(Phi));
