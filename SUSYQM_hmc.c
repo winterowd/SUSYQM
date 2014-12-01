@@ -34,7 +34,7 @@ int sign; // sign of the mass term: +1 or -1
 int accepts=0; //number of accepts
 gsl_rng *r; //random number generator
 char start[4];
-double sigma_p;
+double sigma_p, sigma_p2;
 double lambda;
 
 //debugging variables
@@ -103,7 +103,7 @@ double action(double *Phi) {
 #ifndef FACTOR
     Spoly += -log(Wprimeprime(Phi[n]));
 #endif
-    Smom += 0.5*H[n]*H[n]/sigma_p;
+    Smom += 0.5*H[n]*H[n]/sigma_p2;
   }
   S1 = Snonloc; S2 = Sloc; S3 = Spoly; S_mom = Smom;
   printf("S1: %e S2: %e S3: %e Smom: %e\n", S1, S2, S3, S_mom);
@@ -114,7 +114,7 @@ void update_Phi(double eps) {
 
   int n;
   for(n=0; n<N; n++) {
-    Phi[n] += eps*H[n]/sigma_p;
+    Phi[n] += eps*H[n]/sigma_p2;
     //printf("update Phi[%d] = %e\n", n, Phi[n]);
   }
 
@@ -327,6 +327,11 @@ void update() {
   }
   //metropolis step
   printf("final action = %e\n", action(Phi));
+  //additional sign flip 
+  if(gsl_rng_uniform(r) > .5) {
+    for(n=0; n<N; n++)
+      Phi[n]=-Phi[n];
+  }
   double deltaS = action(Phi) - action_old;
   double rand = gsl_rng_uniform(r);
   if( exp((double)-deltaS) > rand) {
@@ -359,6 +364,7 @@ int main(int argc, char *argv[]){
   int seed = atoi(argv[9]);
   strcpy(start, argv[10]);
   sigma_p = atof(argv[11]);
+  sigma_p2 = sigma_p*sigma_p;
   lambda = atof(argv[12]);
   printf("N: %d lambdaR: %e m2latt: %e warms: %d trajecs: %d meas: %d step_size: %e num_steps %d seed: %d sigma_p: %e lambda: %e\n", N, lambdaR, m2latt, warms, trajecs, meas, step_size, num_steps, seed, sigma_p, lambda);
   scale = 1.0;
