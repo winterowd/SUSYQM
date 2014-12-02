@@ -127,7 +127,7 @@ main(int argc, char *argv[]){
   MINIT = atoi(argv[5]);
   M = atoi(argv[6]);
   P = atoi(argv[7]);
-  printf("N: %d lambdaR: %e dist: %d dPhi: %e m2latt: %e warms: %d trajecs: %d meas: %d\n", N, lambdaR, dist, dPhi, m2latt, MINIT, M, P);
+  printf("N: %d lambdaR: %e dPhi: %e m2latt: %e warms: %d trajecs: %d meas: %d\n", N, lambdaR, dPhi, m2latt, MINIT, M, P);
   scale = 1.0;
   sign = 1;
 
