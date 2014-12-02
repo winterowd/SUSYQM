@@ -128,7 +128,7 @@ main(int argc, char *argv[]){
   M = atoi(argv[6]);
   P = atoi(argv[7]);
   int seed = atoi(argv[8]);
-  printf("N: %d lambdaR: %e dPhi: %e m2latt: %e warms: %d trajecs: %d meas: %d\n", N, lambdaR, dPhi, m2latt, MINIT, M, P);
+  printf("N: %d lambdaR: %e dPhi: %e m2latt: %e warms: %d trajecs: %d meas: %d seed: %d\n", N, lambdaR, dPhi, m2latt, MINIT, M, P, seed);
   scale = 1.0;
   sign = 1;
 
