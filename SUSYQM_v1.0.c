@@ -121,12 +121,12 @@ double vevF4(double *F){// smeared estimator for << F[n]^4>>
 main(int argc, char *argv[]){
   N = atoi(argv[1]);
   lambdaR = atof(argv[2]);
-  int dist = atoi(argv[3]); double dPhi = atof(argv[4]);
+  double dPhi = atof(argv[3]);
   //  m2latt = 1.0/((double)N*lambdaR*scale);
-  m2latt = atof(argv[5]);
-  MINIT = atoi(argv[6]);
-  M = atoi(argv[7]);
-  P = atoi(argv[8]);
+  m2latt = atof(argv[4]);
+  MINIT = atoi(argv[5]);
+  M = atoi(argv[6]);
+  P = atoi(argv[7]);
   printf("N: %d lambdaR: %e dist: %d dPhi: %e m2latt: %e warms: %d trajecs: %d meas: %d\n", N, lambdaR, dist, dPhi, m2latt, MINIT, M, P);
   scale = 1.0;
   sign = 1;
