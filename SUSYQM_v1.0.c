@@ -127,6 +127,7 @@ main(int argc, char *argv[]){
   MINIT = atoi(argv[5]);
   M = atoi(argv[6]);
   P = atoi(argv[7]);
+  int seed = atoi(argv[8]);
   printf("N: %d lambdaR: %e dPhi: %e m2latt: %e warms: %d trajecs: %d meas: %d\n", N, lambdaR, dPhi, m2latt, MINIT, M, P);
   scale = 1.0;
   sign = 1;
@@ -148,7 +149,7 @@ main(int argc, char *argv[]){
   double bicF, bicPhi, vbicF, vbicPhi;
   int samples;
 
-  int seed=0;
+  //int seed=0;
   int accept; double accept_ratio;
   int m, n, np1, nm1;
 
