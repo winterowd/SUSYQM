@@ -20,9 +20,9 @@ v1.1: we compute, ``on the fly'', the 2--point function, <F[l]F[l+n]>
 double scale, m2latt, lambdaR; // scale factor,  squared lattice mass, ren.coup.
 
 int N; // lattice size
-int MINIT = 1000000;
-int M = 10000000; // configurations
-int P = 5000; // packets
+int MINIT;
+int M; // configurations
+int P; // packets
 int sign; // sign of the mass term: +1 or -1
 
 
@@ -59,9 +59,14 @@ double DeltaS(double *Phi, double deltaPhi, int n){
 
 void input(double *Phi,double dPhi){// initializes the configuration at random in the interval [-1,1]
   int n;
+  double rand;
   for(n=0;n<N;n++){
-    //    Phi[n] = dPhi*(1.0-2.0*drand48()); /* hot start */
-    Phi[n]=0.0; // cold start
+    rand = drand48();
+    //printf("rand: %e\n", rand);
+    //Phi[n] = dPhi*(1.0-2.0*drand48()); /* hot start */
+    Phi[n] = dPhi*(1.0-2.0*rand);
+    //printf("Phi[%d]: %e\n", n, Phi[n]);
+    //Phi[n]=0.0; // cold start
   }
 
 }
@@ -119,6 +124,10 @@ main(int argc, char *argv[]){
   int dist = atoi(argv[3]); double dPhi = atof(argv[4]);
   //  m2latt = 1.0/((double)N*lambdaR*scale);
   m2latt = atof(argv[5]);
+  MINIT = atoi(argv[6]);
+  M = atoi(argv[7]);
+  P = atoi(argv[8]);
+  printf("N: %d lambdaR: %e dist: %d dPhi: %e m2latt: %e warms: %d trajecs: %d meas: %d\n", N, lambdaR, dist, dPhi, m2latt, MINIT, M, P);
   scale = 1.0;
   sign = 1;
 
@@ -144,6 +153,7 @@ main(int argc, char *argv[]){
   int m, n, np1, nm1;
 
   (void)srand48(seed);
+  //printf("first random %e\n", drand48());
 
   input(Phi,dPhi); //initialize the scalar
 
@@ -155,14 +165,18 @@ main(int argc, char *argv[]){
 
     for(n=0;n<N;n++){
       deltaPhi = dPhi*(1.0L-2.0L*drand48());//choose deltaPhi uniformly
-      //  printf("%g\n",exp(-DeltaS(Phi, deltaPhi, n)));
+      //printf("%d deltaPhi: %e\n", n, deltaPhi);
+      //printf("deltaS: %e\n",DeltaS(Phi, deltaPhi, n));
       if(exp(-DeltaS(Phi,deltaPhi,n))>drand48()){
+	//printf("ACCEPT!\n");
 	Phi[n]=Phi[n]+deltaPhi; accept++;
       }
+      //else 
+      //printf("REJECT!\n");
     }
 
 
-  }
+    }
 
     
 samples=0; bicF=0.0; bicPhi=0.0; vbicF=0.0; vbicPhi=0.0;
@@ -193,14 +207,13 @@ samples=0; bicF=0.0; bicPhi=0.0; vbicF=0.0; vbicPhi=0.0;
     if(m%P==0){
     fprintf(acc_rat,"%d\t%g\n",m,accept_ratio);
     fprintf(vevf1,"%d\t%g\n",m,vevF1(F));
-    fprintf(vevf2,"%d\t%g\n",m,new_vevF2(F,dist));
-    fprintf(vevphi2,"%d\t%g\n",m,new_vevF2(Phi,dist));
     fprintf(vevf4, "%d\t%g\n", m, vevF4(F));
     fprintf(vevphi4, "%d\t%g\n", m, vevF4(Phi));
     fprintf(vevphi, "%d\t%g\n", m, vevF1(Phi));
-    fprintf(vevphi2, "%d\t%g\n", m, new_vevF2(Phi, dist));
-
-    
+    for(n=0; n<N/2; n++) {
+      fprintf(vevphi2, "%d\t%d\t%g\n", m, n, new_vevF2(Phi, n));
+      fprintf(vevf2,"%d\t%d\t%g\n",m, n, new_vevF2(F, n));
+    }
     }
    
 
