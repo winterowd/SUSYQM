@@ -372,10 +372,12 @@ int main(int argc, char *argv[]){
 
 #ifdef FACTOR
   printf("FACTOR defined!");
-  FILE *vevDetWpp, *vevphiDetWpp, *vevphi2DetWpp;
+  FILE *vevDetWpp, *vevphiDetWpp, *vevphi2DetWpp, *vevfDetWpp, *vevf2DetWpp;
   vevDetWpp = fopen("vevDetWpp.out", "w");
   vevphiDetWpp = fopen("vevphiDetWpp.out", "w");
   vevphi2DetWpp = fopen("vevphi2DetWpp.out", "w");
+  vevfDetWpp = fopen("vevfDetWpp.out", "w");
+  vevf2DetWpp = fopen("vevf2DetWpp.out", "w");
 #endif
   
   FILE *vevf1, *vevf2, *vevphi, *vevphi2, *vevf4, *vevphi4, *vevphi6, *vevphi8;
@@ -445,6 +447,7 @@ int main(int argc, char *argv[]){
 	fprintf(vevWpp2,"%d\t%d\t%g\n",m,n,new_vevF2(Wpp,n));
 #ifdef FACTOR
 	fprintf(vevphi2DetWpp,"%d\t%d\t%g\n",m,n,detWprimeprime(Phi)*new_vevF2(Phi,n));
+	fprintf(vevf2DetWpp,"%d\t%d\t%g\n",m,n,detWprimeprime(Phi)*new_vevF2(F,n));
 #endif
       }
       for(n=0; n<N; n++) {
@@ -463,6 +466,7 @@ int main(int argc, char *argv[]){
 #ifdef FACTOR
       fprintf(vevDetWpp, "%d\t%g\n", m, detWprimeprime(Phi));
       fprintf(vevphiDetWpp, "%d\t%g\n", m, detWprimeprime(Phi)*vevF1(Phi));
+      fprintf(vevfDetWpp, "%d\t%g\n", m, detWprimeprime(Phi)*vevF1(F));
 #endif
     } 
     
@@ -487,6 +491,8 @@ int main(int argc, char *argv[]){
   fclose(vevDetWpp);
   fclose(vevphiDetWpp);
   fclose(vevphi2DetWpp);
+  fclose(vevfDetWpp);
+  fclose(vevf2DetWpp);
 #endif
 
   free(Phi);
