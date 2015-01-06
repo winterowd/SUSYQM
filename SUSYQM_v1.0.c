@@ -35,6 +35,14 @@ double Wprime(double phi){// dW/dPhi_n
   return(dWdPhin);
 }
 
+double Wprimeprime(double phi) {// dW/dPhi_n
+  double d2Wd2Phin;
+
+  d2Wd2Phin = (1.0L + 0.5*sqr(phi));
+
+  return(d2Wd2Phin);
+}
+
 double DeltaS(double *Phi, double deltaPhi, int n){
 // computes the change in the action, when we propose Phi[n]->Phi[n] + deltaPhi
   double deltaS, deltaSnonloc, deltaSloc, deltaSpoly, Phinew=Phi[n]+deltaPhi;
@@ -135,6 +143,7 @@ main(int argc, char *argv[]){
  
 
   FILE *acc_rat, *vevf1, *vevf2, *vevphi, *vevphi2, *vevf4, *vevphi4;
+  FILE *vevWpp1, *vevWpp2, *vevWpp4;
   acc_rat = fopen("acc_ratio.out","w");
   vevf1   = fopen("vevf1.out", "w");
   vevf2   = fopen("vevf2.out", "w");
@@ -142,8 +151,11 @@ main(int argc, char *argv[]){
   vevphi2 = fopen("vevphi2.out", "w");
   vevf4 = fopen("vevf4.out", "w");
   vevphi4  = fopen("vevphi4.out", "w");
+  vevWpp1 = fopen("vevWpp1.out", "w");
+  vevWpp2 = fopen("vevWpp2.out", "w");
+  vevWpp4 = fopen("vevWpp4.out", "w");
 
-  double Phi[N+1], F[N+1];
+  double Phi[N+1], F[N+1], Wpp[N+1];
   double deltaPhi;
 
   double bicF, bicPhi, vbicF, vbicPhi;
@@ -198,6 +210,7 @@ samples=0; bicF=0.0; bicPhi=0.0; vbicF=0.0; vbicPhi=0.0;
     for(n=0;n<N;n++){
       np1 = (n+1)%N; nm1 = (N+n-1)%N;
       F[n] = 0.5*(Phi[np1]-Phi[nm1])+ m2latt*Wprime(Phi[n]);
+      Wpp[n] = exp(-log(Wprimeprime(Phi[n])));
     }
 
     accept_ratio = (double)accept/(double)N;
@@ -206,20 +219,23 @@ samples=0; bicF=0.0; bicPhi=0.0; vbicF=0.0; vbicPhi=0.0;
 
     // record the MC time series 
     if(m%P==0){
-    fprintf(acc_rat,"%d\t%g\n",m,accept_ratio);
-    fprintf(vevf1,"%d\t%g\n",m,vevF1(F));
-    fprintf(vevf4, "%d\t%g\n", m, vevF4(F));
-    fprintf(vevphi4, "%d\t%g\n", m, vevF4(Phi));
-    fprintf(vevphi, "%d\t%g\n", m, vevF1(Phi));
-    for(n=0; n<N/2; n++) {
-      fprintf(vevphi2, "%d\t%d\t%g\n", m, n, new_vevF2(Phi, n));
-      fprintf(vevf2,"%d\t%d\t%g\n",m, n, new_vevF2(F, n));
-    }
+      fprintf(acc_rat,"%d\t%g\n",m,accept_ratio);
+      fprintf(vevf1,"%d\t%g\n",m,vevF1(F));
+      fprintf(vevf4, "%d\t%g\n", m, vevF4(F));
+      fprintf(vevphi4, "%d\t%g\n", m, vevF4(Phi));
+      fprintf(vevphi, "%d\t%g\n", m, vevF1(Phi));
+      fprintf(vevWpp1, "%d\t%g\n", m, vevF1(Wpp));
+      fprintf(vevWpp4, "%d\t%g\n", m, vevF4(Wpp));
+      for(n=0; n<N/2; n++) {
+	fprintf(vevphi2, "%d\t%d\t%g\n", m, n, new_vevF2(Phi, n));
+	fprintf(vevf2,"%d\t%d\t%g\n",m, n, new_vevF2(F, n));
+	fprintf(vevWpp2,"%d\t%d\t%g\n",m,n,new_vevF2(Wpp,n));
+      }
     }
    
 
    
-  }
+    }
 
     
 
@@ -230,6 +246,9 @@ samples=0; bicF=0.0; bicPhi=0.0; vbicF=0.0; vbicPhi=0.0;
     fclose(vevphi4);
     fclose(vevphi);
     fclose(vevphi2);
+    fclose(vevWpp1);
+    fclose(vevWpp2);
+    fclose(vevWpp4);
     // printf("%g\t%g\n", bicF, vbicF-sqr(bicF));
     //printf("%g\t%g\n", bicPhi, vbicPhi-sqr(bicPhi));
 }
