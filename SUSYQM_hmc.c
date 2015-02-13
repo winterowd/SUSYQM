@@ -247,6 +247,27 @@ double SD3b(double *F) { //estimator for <<\Phi[n]^3\Phi[n-1]>>
   return(sd3);
 }
 
+double SD3c(double *f1, double *f2) { //estimator for <<\Phi[n]^4 Wpp[n]>>
+
+  int l; double sd3 = 0.0;
+  for(l=0;l<N;l++){
+    sd3 = sd3 + sqr(sqr(f1[l]))*f2[l];
+  }
+  sd3 = sd3/(double)N;
+  return(sd3);
+
+}
+
+double SD1a(double *f1, double *f2) { //estimator for <<\Phi[n]^4 Wpp[n]>>
+
+  int l; double sd1 = 0.0;
+  for(l=0;l<N;l++){
+    sd1 = sd1 + sqr(f1[l])*f2[l];
+  }
+  sd1 = sd1/(double)N;
+  return(sd1);
+
+}
 
 /* double BiC(double *X){// Binder cumulant: <F^4>-3<F^2>^2
   int n; double vevf2=0.0, vevf4=0.0;
@@ -381,7 +402,7 @@ int main(int argc, char *argv[]){
 #endif
   
   FILE *vevf1, *vevf2, *vevphi, *vevphi2, *vevf4, *vevphi4, *vevphi6, *vevphi8;
-  FILE *vevWpp1, *vevWpp2, *vevWpp4, *phiSD3a, *phiSD3b;
+  FILE *vevWpp1, *vevWpp2, *vevWpp4, *phiSD3a, *phiSD3b, *phiSD3c, *phiSD1a;
   vevf1   = fopen("vevf1.out", "w");
   vevf2   = fopen("vevf2.out", "w");
   vevphi = fopen("vevphi.out", "w");
@@ -392,6 +413,8 @@ int main(int argc, char *argv[]){
   vevphi8  = fopen("vevphi8.out", "w");
   phiSD3a = fopen("phiSD3a.out", "w");
   phiSD3b = fopen("phiSD3b.out", "w");
+  phiSD3c = fopen("phiSD3c.out", "w");
+  phiSD1a = fopen("phiSD1a.out", "w");
   vevWpp1 = fopen("vevWpp1.out", "w");
   vevWpp2 = fopen("vevWpp2.out", "w");
   vevWpp4 = fopen("vevWpp4.out", "w");
@@ -461,6 +484,8 @@ int main(int argc, char *argv[]){
       fprintf(vevphi8, "%d\t%g\n", m, vevF8(Phi));
       fprintf(phiSD3a, "%d\t%g\n", m, SD3a(Phi));
       fprintf(phiSD3b, "%d\t%g\n", m, SD3b(Phi));
+      fprintf(phiSD3c, "%d\t%g\n", m, SD3c(Phi,Wpp));
+      fprintf(phiSD1a, "%d\t%g\n", m, SD1a(Phi,Wpp));
       fprintf(vevWpp1, "%d\t%g\n", m, vevF1(Wpp));
       fprintf(vevWpp4, "%d\t%g\n", m, vevF4(Wpp));
 #ifdef FACTOR
@@ -484,6 +509,8 @@ int main(int argc, char *argv[]){
   fclose(vevphi8);
   fclose(phiSD3a);
   fclose(phiSD3b);
+  fclose(phiSD3c);
+  fclose(phiSD1a);
   fclose(vevWpp1);
   fclose(vevWpp2);
   fclose(vevWpp4);
