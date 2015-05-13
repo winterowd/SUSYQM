@@ -75,7 +75,7 @@ double force(int n) {
   nm1 = (n+N-1)%N;
   force_nonloc = force_loc = 0.0;
   force_nonloc = (Phi[np1] + Phi[nm1] - 2.0*Phi[n]);
-  force_loc = -4.*lambdaR*Phi[n](Phi[n]*Phi[n] - f2);
+  force_loc = -4.*lambdaR*Phi[n]*(Phi[n]*Phi[n] - f2);
   //printf("F1: %e F2: %e\n", c1*force_nonloc, c2*force_loc);
   return(force_nonloc + force_loc);
 }//force
@@ -123,9 +123,6 @@ double vevF1(double *F){//compute <<F[n]>> over the lattice thus obtaining a les
   return(vevf1/(double)N);
 }
 
-double potential(double *Phi, int n) {
-  return(Wprime(Phi[n])*Wprime(Phi[n]));
-}
 
 double new_vevF2(double *F, int n){// smeared estimator for <<F[l]F[l+n]>>
   int l; double vf2 = 0.0;
@@ -225,7 +222,7 @@ void update() {
 
   ranmom();
   double action_old = action(Phi);
-  S1_old = S1; S2_old = S2; S3_old = S3; S_mom_old = S_mom;
+  S1_old = S1; S2_old = S2; S_mom_old = S_mom;
   //printf("S1_old: %e S2_old: %e S3_old: %e S_mom_old: %e\n", S1_old, S2_old, S3_old, S_mom_old);
   //printf("S1: %e S2: %e S3: %e S_mom: %e\n", S1, S2, S3, S_mom);
   printf("initial action = %e\n", action_old);
@@ -255,14 +252,14 @@ void update() {
   double rand = gsl_rng_uniform(r);
   if( exp((double)-deltaS) > rand) {
     accepts++;
-    printf("ACCEPT: deltaS: %e DS1: %e DS2: %e DS3: %e DSMOM: %e\n", deltaS, (S1-S1_old), 
-	   (S2-S2_old), (S3-S3_old), (S_mom-S_mom_old));
+    printf("ACCEPT: deltaS: %e DS1: %e DS2: %e DSMOM: %e\n", deltaS, (S1-S1_old), 
+	   (S2-S2_old), (S_mom-S_mom_old));
     for(n=0; n<N; n++)
       Phi_old[n] = Phi[n];
   }
   else {
-    printf("REJECT: deltaS: %e DS1: %e DS2: %e DS3: %e DSMOM: %e\n", deltaS, (S1-S1_old), 
-	   (S2-S2_old), (S3-S3_old), (S_mom-S_mom_old));
+    printf("REJECT: deltaS: %e DS1: %e DS2: %e DSMOM: %e\n", deltaS, (S1-S1_old), 
+	   (S2-S2_old), (S_mom-S_mom_old));
     for(n=0; n<N; n++)
       Phi[n] = Phi_old[n];
   }
@@ -285,9 +282,7 @@ int main(int argc, char *argv[]){
   sigma_p2 = sigma_p*sigma_p;
   lambda = atof(argv[12]);
   printf("N: %d lambdaR: %e f2: %e warms: %d trajecs: %d meas: %d step_size: %e num_steps %d seed: %d sigma_p: %e lambda: %e\n", N, lambdaR, f2, warms, trajecs, meas, step_size, num_steps, seed, sigma_p, lambda);
-  scale = 1.0;
-  sign = 1;
-
+  
   FILE *vevphi, *vevphi2, *vevphi4, *vevphi6, *vevphi8;
   vevphi = fopen("vevphi.out", "w");
   vevphi2 = fopen("vevphi2.out", "w");
@@ -316,8 +311,7 @@ int main(int argc, char *argv[]){
   //return;
   printf("WARMUPS FINISHED!\n");
   accepts=0;
-  samples=0; bicF=0.0; bicPhi=0.0; vbicF=0.0; vbicPhi=0.0;
-  
+    
   for(m=1;m<=trajecs;m++){
     
     update();
