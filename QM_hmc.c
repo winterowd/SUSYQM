@@ -324,8 +324,7 @@ int main(int argc, char *argv[]){
 	fprintf(vevphi2,"%d\t%d\t%g\n",m,n,new_vevF2(Phi,n));
       }
       for(n=0; n<N; n++) {
-	//printf("DEBUG_potential: %d %d %e\n", m, n, potential(Phi,n));
-	//printf("DEBUG_phi: %d %d %e\n", m, n, Phi[n]);
+	printf("DEBUG_phi: %d %d %e\n", m, n, Phi[n]);
       }
       fprintf(vevphi4, "%d\t%g\n", m, vevF4(Phi));
       fprintf(vevphi, "%d\t%g\n", m, vevF1(Phi));
