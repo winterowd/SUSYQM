@@ -282,7 +282,7 @@ int main(int argc, char *argv[]){
   sigma_p = atof(argv[12]);
   sigma_p2 = sigma_p*sigma_p;
   lambda = atof(argv[13]);
-  printf("N: %d lambdaR: %e f2: %e warms: %d trajecs: %d meas: %d step_size: %e num_steps %d seed: %d sigma_p: %e lambda: %e\n", N, lambdaR, f2, warms, trajecs, meas, step_size, num_steps, seed, sigma_p, lambda);
+  printf("N: %d lambdaR: %e f2: %e mass: %e warms: %d trajecs: %d meas: %d step_size: %e num_steps %d seed: %d sigma_p: %e lambda: %e\n", N, lambdaR, f2, mass, warms, trajecs, meas, step_size, num_steps, seed, sigma_p, lambda);
   
   FILE *vevphi, *vevphi2, *vevphi4, *vevphi6, *vevphi8;
   vevphi = fopen("vevphi.out", "w");
