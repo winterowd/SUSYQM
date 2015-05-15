@@ -28,6 +28,7 @@ int iters; // number of trajectories
 int meas; // when to measure
 int sign; // sign of the mass term: +1 or -1
 int accepts=0; //number of accepts
+int rejects=0l //number of rejects
 gsl_rng *r; //random number generator
 char start[4];
 double dPhi;
@@ -177,6 +178,8 @@ void update() {
 	//printf("ACCEPT: deltaS: %e site: %d hit: %d\n", deltaS, n, i); 
       }
       else {
+	rejects++;
+	Phi[n] = Phi_old[n];
 	//printf("REJECT: deltaS: %e site: %d hit: %d\n", deltaS, n, i);
       }
     }
