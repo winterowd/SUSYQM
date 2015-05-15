@@ -18,5 +18,11 @@ QM_hmc.o: QM_hmc.c
 QM_hmc: QM_hmc.o
 	${CC} -g -o QM_hmc QM_hmc.o ${LDFLAGS}
 
+QM_met.o: QM_met.c
+	${CC} ${CFLAGS} -c QM_met.c
+
+QM_met: QM_met.o
+	${CC} -g -o QM_met QM_met.o ${LDFLAGS}
+
 clean:
 	rm *.o
