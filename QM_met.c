@@ -51,7 +51,7 @@ double dS(int n, double *Phi, double *Phi_old) {
     lambdaR*( Phi_old[n]*Phi_old[n] - f2)*( Phi_old[n]*Phi_old[n] - f2);
   
   dS1 = dSnonloc; dS2 = dSloc;
-  printf("dS1: %e dS2: %e\n", dS1/a, a*dS2);
+  //printf("dS1: %e dS2: %e\n", dS1/a, a*dS2);
   return(dSnonloc/a + a*dSloc);
 }//action()
 
