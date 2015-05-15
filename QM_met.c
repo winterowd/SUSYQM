@@ -174,10 +174,10 @@ void update() {
       if( exp((double)-deltaS) > rand) {
 	accepts++;
 	Phi_old[n] = Phi[n];
-	printf("ACCEPT: deltaS: %e site: %d hit: %d\n", deltaS, n, i); 
+	//printf("ACCEPT: deltaS: %e site: %d hit: %d\n", deltaS, n, i); 
       }
       else {
-	printf("REJECT: deltaS: %e site: %d hit: %d\n", deltaS, n, i);
+	//printf("REJECT: deltaS: %e site: %d hit: %d\n", deltaS, n, i);
       }
     }
   }
@@ -252,6 +252,7 @@ int main(int argc, char *argv[]){
   } 
   printf("TRAJECTORIES FINISHED!\n");
   printf("ACCEPTS: %d\n", accepts);
+  printf("REJECTS: %d\n", rejects);
 
   fclose(vevphi4);
   fclose(vevphi);
