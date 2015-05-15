@@ -24,32 +24,34 @@ double *Phi, *Phi_old, *H;
 int N; // lattice size
 int warms;
 int hits; //number of hits per site
-int trajecs; // number of trajectories
+int iters; // number of trajectories
 int meas; // when to measure
 int sign; // sign of the mass term: +1 or -1
 int accepts=0; //number of accepts
 gsl_rng *r; //random number generator
 char start[4];
-
-//debugging variables
-double S1, S2;
-double S1_old, S2_old;
 double dPhi;
 
-double action(double *Phi) {
+//debugging variables
+double dS1, dS2;
 
-  int n, np1;
-  double Smom, Snonloc, Sloc;
+double dS(int n, double *Phi, double *Phi_old) {
+
+  int nm1, np1;
+  double dSnonloc, dSloc;
  
-  Smom = Snonloc = Sloc = 0.0;
-  for(n=0; n<N; n++) {
-    np1 = (n+1)%N;
-    Snonloc += mass*(Phi[n]*Phi[n] - Phi[n]*Phi[np1]); 
-    Sloc += lambdaR*( Phi[n]*Phi[n] - f2)*( Phi[n]*Phi[n] - f2);
-  }
-  S1 = Snonloc; S2 = Sloc;
-  printf("S1: %e S2: %e\n", S1, S2);
-  return(Snonloc/a + a*Sloc);
+  dSnonloc = dSloc = 0.0;
+  
+  nm1 = (n+N-1)%N;
+  np1 = (n+1)%N;
+  dSnonloc = mass*(Phi[n]*Phi[n] - Phi[n]*(Phi[np1] + Phi[nm1])) -
+    mass*(Phi_old[n]*Phi_old[n] - Phi_old[n]*(Phi_old[np1] + Phi_old[nm1])); 
+  dSloc = lambdaR*( Phi[n]*Phi[n] - f2)*( Phi[n]*Phi[n] - f2) - 
+    lambdaR*( Phi_old[n]*Phi_old[n] - f2)*( Phi_old[n]*Phi_old[n] - f2);
+  
+  dS1 = dSnonloc; dS2 = dSloc;
+  printf("dS1: %e dS2: %e\n", dS1/a, a*dS2);
+  return(dSnonloc/a + a*dSloc);
 }//action()
 
 void update_Phi() {
@@ -160,60 +162,26 @@ double vevF8(double *F){// smeared estimator for << F[n]^8>>
 void update() {
 
   int i, n;
-  //double S1, S2;
-  double deltaPhi;
-
-  /*for(i=0; i<N; i++)
-    H[n] = 0.;
+  double rand, delta, deltaS;  
   
+   
   for(n=0; n<N; n++) {
-    S1 = action(Phi);
-    printf("S1: %e\n", S1);
-    deltaPhi = dPhi*(1.0L-2.0L*drand48());
-    printf("%d deltaPhi: %e\n", n, deltaPhi);
-    Phi[n] = Phi[n] + deltaPhi;
-    S2 = action(Phi);
-    printf("S2: %e\n", S2);
-    printf("deltaS: %e\n", S2-S1);
-    if(exp(-(S2-S1)) >drand48()) {
-      printf("ACCEPT!\n");
+    for(i=0; i<hits; i++) {
+      delta = dPhi*(1.0-2.0*gsl_rng_uniform(r));
+      Phi[n] += delta;
+      rand = gsl_rng_uniform(r);
+      deltaS = dS(n, Phi, Phi_old);
+      if( exp((double)-deltaS) > rand) {
+	accepts++;
+	Phi_old[n] = Phi[n];
+	printf("ACCEPT: deltaS: %e site: %d hit: %d\n", deltaS, n, i); 
+      }
+      else {
+	printf("REJECT: deltaS: %e site: %d hit: %d\n", deltaS, n, i);
+      }
     }
-    else {
-      printf("REJECT!");
-      Phi[n] = Phi_old[n];
-    }
   }
-
-  return;*/
-
-  double action_old = action(Phi);
-  S1_old = S1; S2_old = S2;
-  //printf("S1_old: %e S2_old: %e S3_old: %e S_mom_old: %e\n", S1_old, S2_old, S3_old, S_mom_old);
-  //printf("S1: %e S2: %e S3: %e S_mom: %e\n", S1, S2, S3, S_mom);
-  printf("initial action = %e\n", action_old);
   
-  
-  update_Phi();
-
-  //metropolis step
-  printf("final action = %e\n", action(Phi));
-  
-  double deltaS = action(Phi) - action_old;
-  double rand = gsl_rng_uniform(r);
-  if( exp((double)-deltaS) > rand) {
-    accepts++;
-    printf("ACCEPT: deltaS: %e DS1: %e DS2: %e DSMOM: %e\n", deltaS, (S1-S1_old), 
-	   (S2-S2_old), (S_mom-S_mom_old));
-    for(n=0; n<N; n++)
-      Phi_old[n] = Phi[n];
-  }
-  else {
-    printf("REJECT: deltaS: %e DS1: %e DS2: %e DSMOM: %e\n", deltaS, (S1-S1_old), 
-	   (S2-S2_old), (S_mom-S_mom_old));
-    for(n=0; n<N; n++)
-      Phi[n] = Phi_old[n];
-  }
-
 }//update()
 
 
@@ -223,17 +191,14 @@ int main(int argc, char *argv[]){
   f2 = atof(argv[3]);
   mass = atof(argv[4]);
   a = atof(argv[5]);
-  warms = atoi(argv[6]);
-  trajecs = atoi(argv[7]);
-  meas = atoi(argv[8]);
-  step_size = atof(argv[9]);
-  num_steps = atoi(argv[10]);
+  dPhi = atof(argv[6]);
+  warms = atoi(argv[7]);
+  iters = atoi(argv[8]);
+  meas = atoi(argv[9]);
+  hits = atoi(argv[10]);
   int seed = atoi(argv[11]);
   strcpy(start, argv[12]);
-  sigma_p = atof(argv[13]);
-  sigma_p2 = sigma_p*sigma_p;
-  lambda = atof(argv[14]);
-  printf("N: %d lambdaR: %e f2: %e mass: %e a: %e warms: %d trajecs: %d meas: %d step_size: %e num_steps %d seed: %d sigma_p: %e lambda: %e\n", N, lambdaR, f2, mass, a, warms, trajecs, meas, step_size, num_steps, seed, sigma_p, lambda);
+  printf("N: %d lambdaR: %e f2: %e mass: %e a: %e dPhi: %e warms: %d iters: %d meas: %d hits: %d seed: %d\n", N, lambdaR, f2, mass, a, dPhi, warms, iters, meas, hits, seed);
   
   FILE *vevphi, *vevphi2, *vevphi4, *vevphi6, *vevphi8;
   vevphi = fopen("vevphi.out", "w");
@@ -244,7 +209,6 @@ int main(int argc, char *argv[]){
    
   Phi = malloc((N+1)*sizeof(double));
   Phi_old = malloc((N+1)*sizeof(double));
-  H = malloc((N+1)*sizeof(double));
   
   int m, n;
 
@@ -264,7 +228,7 @@ int main(int argc, char *argv[]){
   printf("WARMUPS FINISHED!\n");
   accepts=0;
     
-  for(m=1;m<=trajecs;m++){
+  for(m=1;m<=iters;m++){
     
     update();
     
@@ -297,7 +261,6 @@ int main(int argc, char *argv[]){
   
   free(Phi);
   free(Phi_old);
-  free(H);
   gsl_rng_free(r);
   // printf("%g\t%g\n", bicF, vbicF-sqr(bicF));
   //printf("%g\t%g\n", bicPhi, vbicPhi-sqr(bicPhi));
