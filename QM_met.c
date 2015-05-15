@@ -28,7 +28,7 @@ int iters; // number of trajectories
 int meas; // when to measure
 int sign; // sign of the mass term: +1 or -1
 int accepts=0; //number of accepts
-int rejects=0l //number of rejects
+int rejects=0; //number of rejects
 gsl_rng *r; //random number generator
 char start[4];
 double dPhi;
