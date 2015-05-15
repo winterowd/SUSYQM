@@ -17,7 +17,7 @@ HMC for Double Well Potential
 #define sign(x) ((x)>=0.0 ? 1 : -1)
 #define abs(x) (sqrt(x*x))
 
-double f2, lambdaR, mass; // well minimum,  ren.coup., mass
+double f2, lambdaR, mass, a; // well minimum,  ren.coup., mass, lattice spacing
 
 double *Phi, *Phi_old, *H;
 
@@ -53,7 +53,7 @@ double action(double *Phi) {
   }
   S1 = Snonloc; S2 = Sloc; S_mom = Smom;
   printf("S1: %e S2: %e Smom: %e\n", S1, S2, S_mom);
-  return(Smom + Snonloc + Sloc);
+  return(Smom + Snonloc/a + a*Sloc);
 }//action()
 
 void update_Phi(double eps) {
@@ -77,7 +77,7 @@ double force(int n) {
   force_nonloc = mass*(Phi[np1] + Phi[nm1] - 2.0*Phi[n]);
   force_loc = -4.*lambdaR*Phi[n]*(Phi[n]*Phi[n] - f2);
   //printf("F1: %e F2: %e\n", c1*force_nonloc, c2*force_loc);
-  return(force_nonloc + force_loc);
+  return(force_nonloc/a + a*force_loc);
 }//force
 
 void update_momenta(double eps) {
@@ -272,16 +272,17 @@ int main(int argc, char *argv[]){
   lambdaR = atof(argv[2]);
   f2 = atof(argv[3]);
   mass = atof(argv[4]);
-  warms = atoi(argv[5]);
-  trajecs = atoi(argv[6]);
-  meas = atoi(argv[7]);
-  step_size = atof(argv[8]);
-  num_steps = atoi(argv[9]);
-  int seed = atoi(argv[10]);
-  strcpy(start, argv[11]);
-  sigma_p = atof(argv[12]);
+  a = atof(argv[5]);
+  warms = atoi(argv[6]);
+  trajecs = atoi(argv[7]);
+  meas = atoi(argv[8]);
+  step_size = atof(argv[9]);
+  num_steps = atoi(argv[10]);
+  int seed = atoi(argv[11]);
+  strcpy(start, argv[12]);
+  sigma_p = atof(argv[13]);
   sigma_p2 = sigma_p*sigma_p;
-  lambda = atof(argv[13]);
+  lambda = atof(argv[14]);
   printf("N: %d lambdaR: %e f2: %e mass: %e warms: %d trajecs: %d meas: %d step_size: %e num_steps %d seed: %d sigma_p: %e lambda: %e\n", N, lambdaR, f2, mass, warms, trajecs, meas, step_size, num_steps, seed, sigma_p, lambda);
   
   FILE *vevphi, *vevphi2, *vevphi4, *vevphi6, *vevphi8;
