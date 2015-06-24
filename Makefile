@@ -12,6 +12,12 @@ SUSYQM_hmc.o: SUSYQM_hmc.c
 SUSYQM_hmc: SUSYQM_hmc.o
 	${CC} -g -o SUSYQM_hmc SUSYQM_hmc.o ${LDFLAGS}
 
+SUSYQM_Met.o: SUSYQM_Met.c
+	${CC} ${CFLAGS} -c SUSYQM_Met.c
+
+SUSYQM_Met: SUSYQM_Met.o
+	${CC} -g -o SUSYQM_Met SUSYQM_Met.o ${LDFLAGS}
+
 QM_hmc.o: QM_hmc.c
 	${CC} ${CFLAGS} -c QM_hmc.c
 
