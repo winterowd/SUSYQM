@@ -240,7 +240,7 @@ int main(int argc, char *argv[]){
   dPhi = atof(argv[8]);
   int seed = atoi(argv[9]);
   strcpy(start, argv[10]);
-  printf("N: %d lambdaR: %e m2latt: %e warms: %d iters: %d meas: %d hits: %e dPhi: %e seed: %d\n", N, lambdaR, m2latt, warms, iters, meas, hits, dPhi, seed);
+  printf("N: %d lambdaR: %e m2latt: %e warms: %d iters: %d meas: %d hits: %d dPhi: %e seed: %d\n", N, lambdaR, m2latt, warms, iters, meas, hits, dPhi, seed);
   scale = 1.0;
   sign = 1;
 
